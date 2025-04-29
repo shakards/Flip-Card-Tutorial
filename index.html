@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
+  <title>Flip-to-Note Card Component | Interactive Web Design</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* CSS Variables */
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --success: #4cc9f0;
+      --dark: #2b2d42;
+      --light: #f8f9fa;
+      --text: #333;
+      --border: #dee2e6;
+      --card-bg: #fff;
+      --section-bg: #f8f9fa;
+    }
+
+    /* Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background-color: var(--light);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+      flex: 1;
+    }
+
+    /* Fluid Typography */
+    h1, h2, h3, h4 {
+      color: var(--dark);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 5vw, 2.5rem);
+      text-align: center;
+      margin-bottom: 1.5rem;
+      position: relative;
+      padding-bottom: 1rem;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      border-radius: 2px;
+    }
+
+    h2 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      margin: 2rem 0 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    h3 {
+      font-size: clamp(1.25rem, 3vw, 1.5rem);
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    p {
+      margin: 1rem 0;
+      font-size: clamp(1rem, 2.5vw, 1.1rem);
+      color: #555;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    a:hover {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+
+    /* Header - Responsive Navigation */
+    header {
+      background-color: var(--dark);
+      color: white;
+      padding: 1rem 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .logo {
+      font-size: clamp(1.25rem, 4vw, 1.5rem);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo i {
+      color: var(--primary);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .nav-links a {
+      color: white;
+      font-weight: 500;
+      padding: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .nav-links a:hover {
+      color: var(--success);
+      text-decoration: none;
+    }
+
+    .mobile-menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* Cards */
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Flip Card Demo Section */
+    .flip-card-demo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 600px;
+      height: auto;
+      padding: 2rem;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .flip-card-demo::before {
+      content: 'Live Preview';
+      position: absolute;
+      top: 0;
+      right: 0;
+      background-color: var(--primary);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.8rem;
+      border-radius: 0 0 0 4px;
+    }
+
+    /* Flip Card Styles */
+    .flip-card {
+      width: 350px;
+      height: 500px;
+      perspective: 1000px;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .flip-card:hover .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .card-front {
+      background: #fff;
+    }
+
+    .card-front img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-back {
+      background: #fff;
+      transform: rotateY(180deg);
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      border: 1px solid #eee;
+    }
+
+    .card-back h2 {
+      margin: 0 0 15px 0;
+      color: var(--dark);
+      font-size: 1.5rem;
+    }
+
+    .card-back p {
+      color: #4a5568;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+
+    .divider {
+      width: 50px;
+      height: 2px;
+      background: var(--primary);
+      margin: 15px auto;
+    }
+
+    /* Code Block Styling */
+    .code-container {
+      position: relative;
+      background-color: #282c34;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #1e2227;
+      padding: 0.75rem 1rem;
+      color: #abb2bf;
+      font-family: 'Fira Code', monospace;
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+    }
+
+    .copy-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 36px;
+    }
+
+    .copy-btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .copy-btn.copied {
+      background-color: var(--success);
+    }
+
+    pre {
+      margin: 0;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: clamp(0.85rem, 2vw, 0.95rem);
+    }
+
+    code {
+      font-family: 'Fira Code', monospace;
+      line-height: 1.5;
+    }
+
+    /* Syntax highlighting */
+    .token.comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+      color: #5c6370;
+      font-style: italic;
+    }
+
+    .token.punctuation {
+      color: #abb2bf;
+    }
+
+    .token.property,
+    .token.tag,
+    .token.boolean,
+    .token.number,
+    .token.constant,
+    .token.symbol,
+    .token.deleted {
+      color: #d19a66;
+    }
+
+    .token.selector,
+    .token.attr-name,
+    .token.string,
+    .token.char,
+    .token.builtin,
+    .token.inserted {
+      color: #98c379;
+    }
+
+    .token.operator,
+    .token.entity,
+    .token.url,
+    .language-css .token.string,
+    .style .token.string {
+      color: #56b6c2;
+    }
+
+    .token.atrule,
+    .token.attr-value,
+    .token.keyword {
+      color: #c678dd;
+    }
+
+    .token.function,
+    .token.class-name {
+      color: #61afef;
+    }
+
+    .token.regex,
+    .token.important,
+    .token.variable {
+      color: #e06c75;
+    }
+
+    /* Notes & Tips */
+    .note {
+      background-color: #e7f5ff;
+      border-left: 4px solid var(--primary);
+      padding: 1.25rem;
+      margin: 1.5rem 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .note h3 {
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--dark);
+    }
+
+    .note i {
+      color: var(--primary);
+    }
+
+    .note.performance {
+      background-color: #e3f2fd;
+      border-left-color: #2196f3;
+    }
+
+    .note.performance i {
+      color: #2196f3;
+    }
+
+    .note.best-practices {
+      background-color: #e8f5e9;
+      border-left-color: #4caf50;
+    }
+
+    .note.best-practices i {
+      color: #4caf50;
+    }
+
+    .note.warning {
+      background-color: #fff3e0;
+      border-left-color: #ff9800;
+    }
+
+    .note.warning i {
+      color: #ff9800;
+    }
+
+    /* Browser Compatibility */
+    .compatibility {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .browser {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      font-weight: 500;
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+    }
+
+    .browser.supported {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .browser.partial {
+      background-color: #fff8e1;
+      color: #ff8f00;
+    }
+
+    /* Usage Examples - Responsive Grid */
+    .usage-examples {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .example {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+    }
+
+    .example:hover {
+      transform: translateY(-5px);
+    }
+
+    .example-header {
+      background-color: var(--dark);
+      color: white;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .example-content {
+      padding: 1.25rem;
+    }
+
+    /* Step by Step Instructions */
+    .steps {
+      counter-reset: step-counter;
+      margin: 2rem 0;
+    }
+
+    .step {
+      position: relative;
+      padding-left: 3.5rem;
+      margin-bottom: 1.5rem;
+      counter-increment: step-counter;
+    }
+
+    .step::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2.5rem;
+      height: 2.5rem;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .step-image {
+      margin: 1rem 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    .step-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Footer - Responsive Layout */
+    footer {
+      background-color: var(--dark);
+      color: white;
+      padding: 2rem 0 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .footer-content {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .footer-column h3 {
+      color: white;
+      margin-bottom: 1rem;
+      font-size: clamp(1.1rem, 3vw, 1.25rem);
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+
+    .footer-column h3::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 3px;
+      background-color: var(--primary);
+    }
+
+    .footer-links {
+      list-style: none;
+    }
+
+    .footer-links li {
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-links a {
+      color: #adb5bd;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+      font-size: clamp(0.9rem, 2vw, 1rem);
+    }
+
+    .footer-links a:hover {
+      color: white;
+      text-decoration: none;
+      transform: translateX(5px);
+    }
+
+    .footer-links a i {
+      width: 20px;
+      text-align: center;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .social-links a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .social-links a:hover {
+      background-color: var(--primary);
+      transform: translateY(-3px);
+    }
+
+    .copyright {
+      text-align: center;
+      padding-top: 1.5rem;
+      margin-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: #adb5bd;
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+    }
+
+    /* Responsive Design - Breakpoints */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .header-content {
+        flex-direction: row;
+      }
+
+      .nav-links {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        background-color: var(--dark);
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 0;
+        gap: 0;
+        transform: translateY(-150%);
+        transition: transform 0.3s ease;
+        z-index: 100;
+      }
+
+      .nav-links.active {
+        transform: translateY(0);
+      }
+
+      .nav-links a {
+        width: 100%;
+        text-align: center;
+        padding: 0.75rem;
+      }
+
+      .mobile-menu-toggle {
+        display: block;
+      }
+
+      .flip-card-demo {
+        min-height: 500px;
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .container {
+        padding: 0.75rem;
+      }
+
+      h1 {
+        margin-bottom: 1rem;
+      }
+
+      .usage-examples {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    .delay-1 { animation-delay: 0.2s; }
+    .delay-2 { animation-delay: 0.4s; }
+    .delay-3 { animation-delay: 0.6s; }
+
+    /* Utility Classes */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.25rem;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      gap: 0.5rem;
+      text-decoration: none;
+      min-height: 44px;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <i class="fas fa-image"></i>
+        <span>Flip-to-Note Card</span>
+      </div>
+      <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+      <nav class="nav-links" id="navLinks">
+        <a href="#"><i class="fas fa-home"></i> Home</a>
+        <a href="#demo"><i class="fas fa-eye"></i> Demo</a>
+        <a href="#usage"><i class="fas fa-code"></i> Usage</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1 class="fade-in">Interactive Flip-to-Note Card Component</h1>
+    <p class="note fade-in delay-1">
+      <strong><i class="fas fa-lightbulb"></i> Professional Tip:</strong> This flip card component demonstrates modern CSS techniques using 3D transforms and perspective - perfect for showcasing artwork, products, or educational content.
+    </p>
+
+    <!-- Live Demo -->
+    <section id="demo" class="fade-in delay-1">
+      <h2><i class="fas fa-play-circle"></i> Live Demo</h2>
+      <div class="flip-card-demo card">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="card-front">
+              <img src="https://images.unsplash.com/photo-1579783928621-7a13d66a62d1?ixlib=rb-1.2.1&auto=format&fit=crop&w=350&h=500&q=80" alt="Artwork">
+            </div>
+            <div class="card-back">
+              <h2>Artwork History</h2>
+              <div class="divider"></div>
+              <p>This piece was created in 1890 during the artist's Blue Period. It reflects the melancholy and emotional depth characteristic of this phase.</p>
+              <p>The use of cool tones and elongated figures became signature elements of the artist's style during this time.</p>
+              <div class="divider"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Implementation -->
+    <section class="fade-in delay-2">
+      <h2><i class="fas fa-code"></i> Implementation Details</h2>
+      <div class="card">
+        <p>This flip card uses cutting-edge CSS techniques for a smooth 3D flipping effect:</p>
+        
+        <div class="note performance">
+          <h3><i class="fas fa-tachometer-alt"></i> Why This Approach?</h3>
+          <ul>
+            <li><strong>CSS 3D Transforms</strong> for realistic flipping animation</li>
+            <li><strong>Perspective Property</strong> creates depth for the 3D effect</li>
+            <li><strong>Backface Visibility</strong> hides the reverse side during animation</li>
+            <li><strong>Responsive Design</strong> works on all screen sizes</li>
+          </ul>
+        </div>
+
+        <h3><i class="fas fa-cogs"></i> Technical Breakdown</h3>
+        <ol>
+          <li>
+            <strong>Container Setup</strong>: The flip card container establishes the 3D space with <code>perspective: 1000px</code>.
+          </li>
+          <li>
+            <strong>Inner Element</strong>: The inner div handles the flip animation with <code>transform-style: preserve-3d</code>.
+          </li>
+          <li>
+            <strong>Front & Back Faces</strong>: Both faces are absolutely positioned with <code>backface-visibility: hidden</code>.
+          </li>
+          <li>
+            <strong>Hover Effect</strong>: The flip is triggered on hover with <code>transform: rotateY(180deg)</code>.
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Complete Code -->
+    <section id="usage" class="fade-in delay-3">
+      <h2><i class="fas fa-file-code"></i> Complete Implementation</h2>
+      <div class="card">
+        <p>Copy-paste ready code for your projects:</p>
+        <div class="code-container">
+          <div class="code-header">
+            <span>flip-card.html</span>
+            <button class="copy-btn" onclick="copyCode(this)">
+              <i class="far fa-copy"></i> Copy Code
+            </button>
+          </div>
+          <pre><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>!DOCTYPE html</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>html</span> <span class="token attr-name">lang</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>en<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>head</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">charset</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>UTF-8<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>meta</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>viewport<span class="token punctuation">"</span></span> <span class="token attr-name">content</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>width=device-width, initial-scale=1.0<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>title</span><span class="token punctuation">&gt;</span></span>Flip-to-Note Card<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>title</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">&gt;</span></span>
+        <span class="token selector">body</span> <span class="token punctuation">{</span>
+            <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token string">'Segoe UI'</span><span class="token punctuation">,</span> Tahoma<span class="token punctuation">,</span> Geneva<span class="token punctuation">,</span> Verdana<span class="token punctuation">,</span> sans-serif<span class="token punctuation">;</span>
+            <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+            <span class="token property">justify-content</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+            <span class="token property">align-items</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+            <span class="token property">min-height</span><span class="token punctuation">:</span> 100vh<span class="token punctuation">;</span>
+            <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
+            <span class="token property">background</span><span class="token punctuation">:</span> <span class="token hexcode">#f5f5f5</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token selector">.flip-card</span> <span class="token punctuation">{</span>
+            <span class="token property">width</span><span class="token punctuation">:</span> 350px<span class="token punctuation">;</span>
+            <span class="token property">height</span><span class="token punctuation">:</span> 500px<span class="token punctuation">;</span>
+            <span class="token property">perspective</span><span class="token punctuation">:</span> 1000px<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token selector">.flip-card-inner</span> <span class="token punctuation">{</span>
+            <span class="token property">position</span><span class="token punctuation">:</span> relative<span class="token punctuation">;</span>
+            <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+            <span class="token property">height</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+            <span class="token property">transition</span><span class="token punctuation">:</span> transform 0.6s<span class="token punctuation">;</span>
+            <span class="token property">transform-style</span><span class="token punctuation">:</span> preserve-3d<span class="token punctuation">;</span>
+            <span class="token property">border-radius</span><span class="token punctuation">:</span> 15px<span class="token punctuation">;</span>
+            <span class="token property">box-shadow</span><span class="token punctuation">:</span> 0 4px 20px <span class="token function">rgba</span><span class="token punctuation">(</span>0<span class="token punctuation">,</span>0<span class="token punctuation">,</span>0<span class="token punctuation">,</span>0.1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token selector">.flip-card:hover .flip-card-inner</span> <span class="token punctuation">{</span>
+            <span class="token property">transform</span><span class="token punctuation">:</span> <span class="token function">rotateY</span><span class="token punctuation">(</span>180deg<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token selector">.card-front, .card-back</span> <span class="token punctuation">{</span>
+            <span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span>
+            <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+            <span class="token property">height</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+            <span class="token property">backface-visibility</span><span class="token punctuation">:</span> hidden<span class="token punctuation">;</span>
+            <span class="token property">border-radius</span><span class="token punctuation">:</span> 15px<span class="token punctuation">;</span>
+            <span class="token property">overflow</span><span class="token punctuation">:</span> hidden<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token selector">.card-front</span> <span class="token punctuation">{</span>
+            <span class="token property">background</span><span class="token punctuation">:</span> <span class="token hexcode">#fff</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token selector">.card-front img</span> <span class="token punctuation">{</span>
+            <span class="token property">width</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+            <span class="token property">height</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
+            <span class="token property">object-fit</span><span class="token punctuation">:</span> cover<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token selector">.card-back</span> <span class="token punctuation">{</span>
+            <span class="token property">background</span><span class="token punctuation">:</span> <span class="token hexcode">#fff</span><span class="token punctuation">;</span>
+            <span class="token property">transform</span><span class="token punctuation">:</span> <span class="token function">rotateY</span><span class="token punctuation">(</span>180deg<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token property">padding</span><span class="token punctuation">:</span> 25px<span class="token punctuation">;</span>
+            <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
+            <span class="token property">flex-direction</span><span class="token punctuation">:</span> column<span class="token punctuation">;</span>
+            <span class="token property">justify-content</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+            <span class="token property">text-align</span><span class="token punctuation">:</span> center<span class="token punctuation">;</span>
+            <span class="token property">border</span><span class="token punctuation">:</span> 1px solid <span class="token hexcode">#eee</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token selector">.card-back h2</span> <span class="token punctuation">{</span>
+            <span class="token property">margin</span><span class="token punctuation">:</span> 0 0 15px 0<span class="token punctuation">;</span>
+            <span class="token property">color</span><span class="token punctuation">:</span> <span class="token hexcode">#2b2d42</span><span class="token punctuation">;</span>
+            <span class="token property">font-size</span><span class="token punctuation">:</span> 1.5rem<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token selector">.card-back p</span> <span class="token punctuation">{</span>
+            <span class="token property">color</span><span class="token punctuation">:</span> <span class="token hexcode">#4a5568</span><span class="token punctuation">;</span>
+            <span class="token property">line-height</span><span class="token punctuation">:</span> 1.6<span class="token punctuation">;</span>
+            <span class="token property">margin</span><span class="token punctuation">:</span> 10px 0<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token selector">.divider</span> <span class="token punctuation">{</span>
+            <span class="token property">width</span><span class="token punctuation">:</span> 50px<span class="token punctuation">;</span>
+            <span class="token property">height</span><span class="token punctuation">:</span> 2px<span class="token punctuation">;</span>
+            <span class="token property">background</span><span class="token punctuation">:</span> <span class="token hexcode">#4361ee</span><span class="token punctuation">;</span>
+            <span class="token property">margin</span><span class="token punctuation">:</span> 15px auto<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>head</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>body</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>flip-card<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>flip-card-inner<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>card-front<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+                <span class="token comment">&lt;!-- Replace with your image URL --&gt;</span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>https://images.unsplash.com/photo-1579783928621-7a13d66a62d1?ixlib=rb-1.2.1&amp;auto=format&amp;fit=crop&amp;w=350&amp;h=500&amp;q=80<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>Artwork<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>card-back<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">&gt;</span></span>Artwork History<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">&gt;</span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>divider<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>This piece was created in 1890 during the artist's Blue Period. It reflects the melancholy and emotional depth characteristic of this phase.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>The use of cool tones and elongated figures became signature elements of the artist's style during this time.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+                <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>divider<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+            <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>body</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>html</span><span class="token punctuation">&gt;</span></span></code></pre>
+        </div>
+        
+        <div class="note best-practices">
+          <h3><i class="fas fa-check-double"></i> Customization Tips</h3>
+          <ul>
+            <li><strong>Image Size</strong>: For best results, use images with a 7:10 aspect ratio (e.g., 350px × 500px)</li>
+            <li><strong>Content</strong>: Edit the text in the <code>.card-back</code> div to match your content</li>
+            <li><strong>Colors</strong>: Change the <code>--primary</code> CSS variable to match your brand colors</li>
+            <li><strong>Animation Speed</strong>: Adjust the <code>transition: transform 0.6s</code> value to make the flip faster or slower</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Image Usage Instructions -->
+    <section class="fade-in delay-3">
+      <h2><i class="fas fa-image"></i> Using Your Own Images</h2>
+      <div class="card">
+        <p>You can easily customize the flip card with your own images using one of these methods:</p>
+        
+        <div class="steps">
+          <div class="step">
+            <h3>Method 1: Using an Image URL</h3>
+            <p>Replace the default image URL in the code with your own image URL:</p>
+            <ol>
+              <li>Find an image online and right-click on it</li>
+              <li>Select "Copy image address" (Chrome/Firefox) or "Copy image location" (Safari)</li>
+              <li>In the code, replace the <code>src</code> attribute of the <code>&lt;img&gt;</code> tag with your copied URL</li>
+            </ol>
+            <div class="note">
+              <p><strong>Example:</strong></p>
+              <pre><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>https://example.com/your-image.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>Your description<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span></code></pre>
+            </div>
+          </div>
+          
+          <div class="step">
+            <h3>Method 2: Using a Local Image</h3>
+            <p>To use an image from your computer:</p>
+            <ol>
+              <li>Place your image file in the same folder as your HTML file</li>
+              <li>In the code, replace the <code>src</code> attribute with your image filename</li>
+            </ol>
+            <div class="note">
+              <p><strong>Example:</strong></p>
+              <pre><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>your-image.jpg<span class="token punctuation">"</span></span> <span class="token attr-name">alt</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>Your description<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span></code></pre>
+              <p>For best results, ensure your image is properly sized (350px × 500px recommended).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Best Practices -->
+    <section class="fade-in delay-3">
+      <div class="note best-practices">
+        <h3><i class="fas fa-check-double"></i> Best Practices</h3>
+        <ul>
+          <li><strong>Optimize Images</strong> - Compress your images for faster loading times</li>
+          <li><strong>Alt Text</strong> - Always include descriptive alt text for accessibility</li>
+          <li><strong>Responsive Design</strong> - Test your flip card on different screen sizes</li>
+          <li><strong>Performance</strong> - Consider lazy loading for images below the fold</li>
+          <li><strong>Fallbacks</strong> - Provide alternative content for users with JavaScript disabled</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Usage Examples -->
+    <section class="fade-in delay-3">
+      <h2><i class="fas fa-laptop-code"></i> Usage Examples</h2>
+      <div class="usage-examples">
+        <div class="example">
+          <div class="example-header">
+            <i class="fas fa-graduation-cap"></i>
+            <h3>Educational Content</h3>
+          </div>
+          <div class="example-content">
+            <p>Perfect for flashcards or educational materials:</p>
+            <ul>
+              <li>Front: Historical artwork or diagram</li>
+              <li>Back: Explanation or historical context</li>
+              <li>Great for language learning vocabulary cards</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="example">
+          <div class="example-header">
+            <i class="fas fa-shopping-bag"></i>
+            <h3>Product Showcase</h3>
+          </div>
+          <div class="example-content">
+            <p>Ideal for e-commerce product displays:</p>
+            <ul>
+              <li>Front: Product image</li>
+              <li>Back: Product details and specifications</li>
+              <li>Show multiple angles or features</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="example">
+          <div class="example-header">
+            <i class="fas fa-id-card"></i>
+            <h3>Business Cards</h3>
+          </div>
+          <div class="example-content">
+            <p>Modern digital business card:</p>
+            <ul>
+              <li>Front: Your photo or logo</li>
+              <li>Back: Contact information and social links</li>
+              <li>Professional and interactive</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Browser Compatibility -->
+    <section class="fade-in delay-3">
+      <h2><i class="fas fa-globe"></i> Browser Compatibility</h2>
+      <div class="card">
+        <p>This flip card works in all modern browsers with excellent support for 3D transforms:</p>
+        
+        <div class="compatibility">
+          <div class="browser supported">
+            <i class="fab fa-chrome"></i>
+            <span>Chrome 12+</span>
+          </div>
+          <div class="browser supported">
+            <i class="fab fa-firefox"></i>
+            <span>Firefox 10+</span>
+          </div>
+          <div class="browser supported">
+            <i class="fab fa-safari"></i>
+            <span>Safari 4+</span>
+          </div>
+          <div class="browser supported">
+            <i class="fab fa-edge"></i>
+            <span>Edge 12+</span>
+          </div>
+          <div class="browser partial">
+            <i class="fab fa-internet-explorer"></i>
+            <span>IE 10+ (partial)</span>
+          </div>
+        </div>
+
+        <div class="note">
+          <h3><i class="fas fa-info-circle"></i> Note on Older Browsers</h3>
+          <p>For browsers that don't support 3D transforms (like IE9 and below), the card will simply show the front content without the flip animation. The content remains accessible.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-column">
+        <h3>Flip-to-Note Card</h3>
+        <p>An interactive card component with 3D flip animation.</p>
+      </div>
+      
+      <div class="footer-column">
+        <h3>Quick Links</h3>
+        <ul class="footer-links">
+          <li><a href="#"><i class="fas fa-chevron-right"></i> Home</a></li>
+          <li><a href="#demo"><i class="fas fa-chevron-right"></i> Demo</a></li>
+          <li><a href="#usage"><i class="fas fa-chevron-right"></i> Usage</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="copyright">
+      <p>&copy; 2025 Flip-to-Note Card Component. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Copy code functionality
+    function copyCode(button) {
+      const codeContainer = button.closest('.code-container');
+      const codeElement = codeContainer.querySelector('code');
+      const range = document.createRange();
+      range.selectNode(codeElement);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      document.execCommand('copy');
+      window.getSelection().removeAllRanges();
+      
+      const originalText = button.innerHTML;
+      button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      button.classList.add('copied');
+      
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.classList.remove('copied');
+      }, 2000);
+    }
+
+    // Mobile menu toggle
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const navLinks = document.getElementById('navLinks');
+    
+    if (mobileMenuToggle && navLinks) {
+      mobileMenuToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        mobileMenuToggle.innerHTML = navLinks.classList.contains('active') 
+          ? '<i class="fas fa-times"></i>' 
+          : '<i class="fas fa-bars"></i>';
+      });
+    }
+
+    // Initialize animations on scroll
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('fade-in');
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      document.querySelectorAll('.card, .note, .step').forEach(el => {
+        observer.observe(el);
+      });
+    });
+  </script>
+</body>
+</html>
